@@ -83,6 +83,7 @@ def compile_edited_file(path_to_file):
     with gzip.open(newest_log, 'r') as f:
         line = f.read()
         # just one line
+        path_to_file = path_to_file.replace(" ", "\ ")
         index_of_path = line.rfind(path_to_file)
         left_index = line[:index_of_path].rfind("\r")
         right_index = line[index_of_path:].find("\r")
@@ -150,7 +151,7 @@ try:
     shutil.move(path_to_dylib, new_path)
 except IOError as e:
     error_log("Error while installing code into simulator.")
-    error_log(e)
+    error_log(e.strerror)
 except:
     pass
 debug_log("...done.")

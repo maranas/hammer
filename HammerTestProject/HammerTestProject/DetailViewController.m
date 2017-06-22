@@ -18,7 +18,7 @@
     // Update the user interface for the detail item.
     if (self.detailItem) {
         self.detailDescriptionLabel.text = @"This is a test!";
-        self.view.backgroundColor = [UIColor greenColor];
+        self.view.backgroundColor = [UIColor whiteColor];
     }
 }
 

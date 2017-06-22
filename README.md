@@ -1,6 +1,9 @@
 # hammer
 Hammer your iOS code into shape without having to rebuild.
 
+![hammer in action](https://github.com/maranas/hammer/blob/master/hammer-demo.gif?raw=true)
+
+
 ### What?
 Have you ever experienced any of these:
 - gotten tired of having to rebuild/compile your app whenever you make a small change, e.g. changing a label’s text, changing the background color of a view, changing the layer properties etc.

@@ -1,7 +1,7 @@
 # hammer
 Hammer your iOS code into shape without having to rebuild.
 
-![hammer in action](https://github.com/maranas/hammer/blob/master/hammer-demo.gif?raw=true)
+![hammer in action](https://github.com/maranas/hammer/blob/master/hammer-demo.gif)
 
 
 ### What?

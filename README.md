@@ -41,7 +41,6 @@ To “hammer” in code while your app is running in the Simulator:
 Done. This is a proof of concept for now so there is a lot of things still to do.
 
 ### TODOs:
-- loading multiple successive changes
 - detect all changed files, instead of just the currently edited file in Xcode
 - Swift
 - xibs/storyboards/assets

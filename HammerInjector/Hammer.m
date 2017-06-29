@@ -24,6 +24,7 @@ static NSString * const kHammerDylibDirectory = @"hammer";
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         instance = [self new];
+        [instance removePatches];
     });
     return instance;
 }
@@ -40,7 +41,9 @@ static NSString * const kHammerDylibDirectory = @"hammer";
     
     // 2. unload stuff, if any
     for (NSUInteger i = 0; i < self.libraryHandles.count; i++) {
-        if (dlclose([self.libraryHandles pointerAtIndex:i]) < 0) {
+        void * handle = [self.libraryHandles pointerAtIndex:i];
+        [self.libraryHandles removePointerAtIndex:i];
+        if (dlclose(handle) < 0) {
             NSLog(@"%@", [NSString stringWithUTF8String:dlerror()]);
         }
     }
@@ -57,21 +60,26 @@ static NSString * const kHammerDylibDirectory = @"hammer";
 
     [contents enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         NSString *filename = (NSString *)obj;
-        NSURL *resourcePath = [hammerDirectory URLByAppendingPathComponent:filename];
-        void * handle = dlopen([resourcePath.path cStringUsingEncoding:NSUTF8StringEncoding], RTLD_NOW);
-        
-        if (handle == NULL) {
-            NSLog(@"%@", [NSString stringWithUTF8String:dlerror()]);
-        }
-        else {
-            [self.libraryHandles addPointer:handle];
-            NSString *className = [[filename componentsSeparatedByString:@"."] firstObject];
-            Class originalClass = NSClassFromString(className);
-            NSString* mangledClassName = [NSString stringWithFormat:@"OBJC_CLASS_$_%@", className];
-            Class class = CFBridgingRelease(dlsym(handle, [mangledClassName cStringUsingEncoding:NSUTF8StringEncoding]));
-            hammerIntoOldClass(class, originalClass);
-            [self.loadedClasses addObject:class];
-            [self.originalClasses addObject:originalClass];
+        NSArray* filenameComponents = [filename componentsSeparatedByString:@"."];
+        if (filenameComponents.count == 2 && [[filenameComponents lastObject] isEqualToString:@"dylib"]) {
+            NSLog(@"Loading library %@", filename);
+            NSURL *resourcePath = [hammerDirectory URLByAppendingPathComponent:filename];
+            void * handle = dlopen([resourcePath.path cStringUsingEncoding:NSUTF8StringEncoding], RTLD_NOW);
+            
+            if (handle == NULL) {
+                NSLog(@"%@", [NSString stringWithUTF8String:dlerror()]);
+            }
+            else {
+                [self.libraryHandles addPointer:handle];
+                NSString *className = [[[filenameComponents firstObject] componentsSeparatedByString:@"-"] firstObject];
+                NSLog(@"Loading class %@", className);
+                Class originalClass = NSClassFromString(className);
+                NSString* mangledClassName = [NSString stringWithFormat:@"OBJC_CLASS_$_%@", className];
+                Class class = CFBridgingRelease(dlsym(handle, [mangledClassName cStringUsingEncoding:NSUTF8StringEncoding]));
+                hammerIntoOldClass(class, originalClass);
+                [self.loadedClasses addObject:class];
+                [self.originalClasses addObject:originalClass];
+            }
         }
     }];
     // 4. profit

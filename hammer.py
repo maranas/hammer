@@ -4,6 +4,8 @@ import os
 import shutil
 from subprocess import Popen, PIPE
 
+destination_directory = None
+
 """
 Tools
 """
@@ -63,6 +65,17 @@ def get_edited_file_name():
         error_log("Failed to get current edited document in Xcode! Is Xcode running, and is a source file open?")
     return val
 
+def get_last_output_version(class_name):
+    files_in_path = os.listdir(destination_directory)
+    version_num = 0
+    for filename in files_in_path:
+        if filename.startswith(class_name):
+            tokens = filename.split("-")
+            if len(tokens) == 2 and tokens[0] == class_name:
+                version_num = int(tokens[1].split(".")[0])
+                version_num = version_num + 1
+    return version_num
+
 def compile_edited_file(path_to_file):
     """
     Gets the latest Xcode build log.
@@ -92,15 +105,18 @@ def compile_edited_file(path_to_file):
 
         # change the output filename
         path_component, file_component = os.path.split(path_to_file)
+        class_name = file_component.replace(".m", "")
         file_component = file_component.replace('.m', '.o')
         left_index = raw_command.find('-o ') + 3
         right_index = raw_command.find(file_component) + len(file_component)
         orig_output = raw_command[left_index:right_index]
-        dylib_output = orig_output.replace(file_component, file_component.replace('.o', '.dylib'))
+        version_num = get_last_output_version(class_name)
+        dylib_output = orig_output.replace(file_component, file_component.replace('.o', '-' + str(version_num) + '.dylib'))
         raw_command = raw_command.replace(orig_output, dylib_output)
 
         # skip missing symbols; they should be in the app too
         raw_command = raw_command + ' -undefined dynamic_lookup'
+        raw_command = raw_command + ' -current_version ' + '1.0'
         compile_commands.append(raw_command.strip())
 
     compile_commands.append('codesign --force -s "-" ' + dylib_output)
@@ -120,16 +136,12 @@ def get_last_used_simulator_application_documents_path():
     simulator_app_data_path = os.path.join(newest_directory_in_path(core_path), 'data', 'Containers', 'Data', 'Application')
     return os.path.join(newest_directory_in_path(simulator_app_data_path), 'Documents')
 
+destination_directory = os.path.join(get_last_used_simulator_application_documents_path(), 'hammer')
 # get the edited file
 # compile it as a dynamic library
-try:
-    path_to_dylib = compile_edited_file(get_edited_file_name())
-except:
-    error_log("Compilation failed!")
+path_to_dylib = compile_edited_file(get_edited_file_name())
 
 # move it to the simulator documents directory
-destination_directory = os.path.join(get_last_used_simulator_application_documents_path(), 'hammer')
-
 try:
     # create the destination, if needed
     os.makedirs(destination_directory)

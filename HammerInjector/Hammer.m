@@ -24,9 +24,13 @@ static NSString * const kHammerDylibDirectory = @"hammer";
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         instance = [self new];
-        [instance removePatches];
     });
     return instance;
+}
+
+- (void) initialize {
+    // clears patches from previous run
+    [self removePatches];
 }
 
 - (void) triggerHammer

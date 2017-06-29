@@ -10,5 +10,6 @@
 
 @interface Hammer : NSObject
 + (instancetype)sharedInstance;
+- (void) initialize;
 - (void) triggerHammer;
 @end

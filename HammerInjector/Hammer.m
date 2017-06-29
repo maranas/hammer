@@ -117,19 +117,19 @@ void hammerIntoOldClass(Class newClass, Class oldClass) {
         Method oldMethod = class_getInstanceMethod(oldClass, method_getName(method));
         if (oldMethod == NULL) {
             //add
+            NSLog(@"Adding implemetation for %@",  NSStringFromSelector(method_getName(method)));
+            class_addMethod(oldClass, method_getName(method), class_getMethodImplementation(newClass, method_getName(method)), method_getTypeEncoding(method));
         }
         else {
             // swizzle
-            HammerSwizzleInstanceMethod(oldClass, method_getName(oldMethod), newClass, method_getName(method));
+            NSLog(@"Updating implemetation for %@",  NSStringFromSelector(method_getName(method)));
+            Method originalMethod = class_getInstanceMethod(oldClass, method_getName(oldMethod));
+            Method newMethod = class_getInstanceMethod(newClass, method_getName(method));
+            method_exchangeImplementations(originalMethod, newMethod);
         }
     }
 
     free(methods);
 }
 
-void HammerSwizzleInstanceMethod(Class classToSwizzle, SEL origSEL, Class newClass, SEL newSEL) {
-    Method originalMethod = class_getInstanceMethod(classToSwizzle, origSEL);
-    Method newMethod = class_getInstanceMethod(newClass, newSEL);
-    method_exchangeImplementations(originalMethod, newMethod);
-}
 @end

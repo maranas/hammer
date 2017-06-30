@@ -30,18 +30,28 @@ Right now this is a proof of concept and a very rough implementation with severa
 - You only have one class per .m file, and the class name is the same as the filename!
 
 To integrate it with your project, you only have to:
-- add a reference to Hammer.m and Hammer.h in your project
-- Build your project once in Xcode, and run it once in the simulator
+- add a reference to `Hammer.m` and `Hammer.h` in your project
+- add a shortcut to `[[Hammer sharedInstance] triggerHammer]`. In the sample project, it is added to the shake gesture, so the changes can be loaded with a simple keyboard shortcut.
+- add a call to `[[Hammer sharedInstance] initialize]` in `application:didFinishLaunching...` to clear patches from the last run.
+- Make sure to build your project once in Xcode, and run it once in the simulator
 
-To “hammer” in code while your app is running in the Simulator:
+To “hammer” in code while your app is running in the Simulator, you have two options:
+
+(Experimental) Using `fs_watcher.py`
+- This requires `watchdog`. It can be installed via `easy_install watchdog`
+- Run the `fs_watcher.py` script with the root directory of your source tree as a parameter. This will watch your directory for changed `.m` files and build them into the app data directory.
+- trigger the shake gesture in the simulator (via cmd+ctrl+z), assuming you've bound `[[Hammer sharedInstance] triggerHammer]` to it
+
+You can also manually call the hammer script:
 - make your changes in Xcode, save
 - run `python hammer.py`. No parameters needed, the only requirement is the edited file has to be currently open in Xcode.
-- pause the debugger, and `po [[Hammer sharedInstance] triggerHammer]`
+- trigger the shake gesture in the simulator (via cmd+ctrl+z), assuming you've bound `[[Hammer sharedInstance] triggerHammer]` to it
+- repeat for every change
 
 Done. This is a proof of concept for now so there is a lot of things still to do.
 
 ### TODOs:
-- detect all changed files, instead of just the currently edited file in Xcode
+- ivars/protocols/categories
 - Swift
 - xibs/storyboards/assets
 
